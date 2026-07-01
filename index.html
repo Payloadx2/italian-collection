@@ -565,7 +565,7 @@ window.openStore = function (id) {
   storeSheet.innerHTML = `
     <button class="close-x" onclick="closeStore()">✕</button>
     <h2>${s ? "お店を編集" : "お店を追加"}</h2>
-    <label class="field">店名
+    <label class="field">お店
       <form autocomplete="off" onsubmit="return false" style="margin:0"><input id="f_store" value="${s ? esc(s.name) : ""}" placeholder="例：トラットリア◯◯" autocomplete="off" autocorrect="off" autocapitalize="off"></form>
     </label>
     <label class="field">エリア
@@ -660,7 +660,7 @@ function openMenu(storeId, menuId) {
   menuSheet.innerHTML = `
     <button class="close-x" onclick="closeMenu()">✕</button>
     <h2>${m ? "メニューを編集" : "メニューを記録"} <span class="count-pill">${esc(store.name)}</span></h2>
-    <label class="field">メニュー名
+    <label class="field">メニュー
       <form autocomplete="off" onsubmit="return false" style="margin:0"><input id="m_dish" value="${m ? esc(m.name) : ""}" placeholder="例：ウニのクリームパスタ" autocomplete="off" autocorrect="off" autocapitalize="off"></form>
     </label>
     <label class="field">種類
