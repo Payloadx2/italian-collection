@@ -58,6 +58,7 @@
   header .eyebrow { font-family: var(--serif); font-size: 11px; letter-spacing: .34em; color: var(--gold); }
   header h1 { margin: 5px 0 0; font-family: var(--serif); font-size: 20px; font-weight: 500; letter-spacing: .05em; }
   header .sub { font-size: 11px; color: var(--sub); margin-top: 4px; }
+  header .ver { position: absolute; top: calc(env(safe-area-inset-top) + 5px); right: 9px; font-family: var(--serif); font-size: 10px; letter-spacing: .05em; color: var(--sub); opacity: .6; }
 
   main { max-width: 640px; margin: 0 auto; padding: 16px; }
 
@@ -253,6 +254,7 @@
 </head>
 <body>
 <header>
+  <span id="ver" class="ver"></span>
   <div class="eyebrow">LA MIA LISTA</div>
   <h1>イタリアン記録</h1>
   <div class="sub">わたしだけの、最高の一皿コレクション</div>
@@ -287,6 +289,12 @@
 "use strict";
 
 /* ---------- データの保存・読み込み ---------- */
+// バージョンマーカー（デバッグ用）：コードを変えたらここの数字を上げる → push後、
+// スマホ画面右上の表示がこの値に変わっていれば「最新版が反映された」と確認できる。
+const APP_VERSION = "v1";
+document.getElementById("ver").textContent = APP_VERSION;
+console.log("APP_VERSION:", APP_VERSION);
+
 const KEY = "italian_record_v1";
 function load() {
   try { return JSON.parse(localStorage.getItem(KEY)) || { stores: [] }; }
