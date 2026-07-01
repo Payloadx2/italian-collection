@@ -566,7 +566,7 @@ window.openStore = function (id) {
     <button class="close-x" onclick="closeStore()">✕</button>
     <h2>${s ? "お店を編集" : "お店を追加"}</h2>
     <label class="field">店名
-      <form autocomplete="off" onsubmit="return false" style="margin:0"><input id="f_name" value="${s ? esc(s.name) : ""}" placeholder="例：トラットリア◯◯" autocomplete="off" autocorrect="off" autocapitalize="off" readonly onfocus="this.removeAttribute('readonly')"></form>
+      <form autocomplete="off" onsubmit="return false" style="margin:0"><input id="f_store" value="${s ? esc(s.name) : ""}" placeholder="例：トラットリア◯◯" autocomplete="off" autocorrect="off" autocapitalize="off"></form>
     </label>
     <label class="field">エリア
       <div class="seg" id="f_area">
@@ -614,7 +614,7 @@ function switchHtml(id, on, attrs) {
 }
 window.closeStore = () => storeOverlay.classList.add("hidden");
 window.saveStore = function () {
-  const name = document.getElementById("f_name").value.trim();
+  const name = document.getElementById("f_store").value.trim();
   if (!name) { toast("店名を入れてください"); return; }
   const budget = document.getElementById("f_budget").value.trim();
   const walkRaw = document.getElementById("f_walk").value.trim();
@@ -661,7 +661,7 @@ function openMenu(storeId, menuId) {
     <button class="close-x" onclick="closeMenu()">✕</button>
     <h2>${m ? "メニューを編集" : "メニューを記録"} <span class="count-pill">${esc(store.name)}</span></h2>
     <label class="field">メニュー名
-      <form autocomplete="off" onsubmit="return false" style="margin:0"><input id="m_name" value="${m ? esc(m.name) : ""}" placeholder="例：ウニのクリームパスタ" autocomplete="off" autocorrect="off" autocapitalize="off" readonly onfocus="this.removeAttribute('readonly')"></form>
+      <form autocomplete="off" onsubmit="return false" style="margin:0"><input id="m_dish" value="${m ? esc(m.name) : ""}" placeholder="例：ウニのクリームパスタ" autocomplete="off" autocorrect="off" autocapitalize="off"></form>
     </label>
     <label class="field">種類
       <div class="seg" id="m_type">
@@ -697,7 +697,7 @@ window.pickRating = k => {
 };
 window.closeMenu = () => menuOverlay.classList.add("hidden");
 window.saveMenu = function () {
-  const name = document.getElementById("m_name").value.trim();
+  const name = document.getElementById("m_dish").value.trim();
   if (!name) { toast("メニュー名を入れてください"); return; }
   const store = db.stores.find(s => s.id === mEdit.storeId);
   const adding = !mEdit.menuId;
