@@ -1,0 +1,825 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#1f7a4d" />
+<title>🍝 イタリアン記録</title>
+<style>
+  :root {
+    --bg: #F3EEE1;
+    --card: #FBF7EE;
+    --cardbd: #E6DDC9;
+    --ink: #2A2418;
+    --sub: #9A8F77;
+    --muted: #9A8F77;
+    --line: #E2D9C4;
+    --leadc: #D3C9B0;
+    --gold: #A6822F;
+    --goldlt: #BF9E48;
+    --gdeep: #8A6A1E;
+    --rbest: #9A7B33;
+    --serif: "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", "Yu Mincho JP", Georgia, "Times New Roman", serif;
+  }
+  /* 殿堂タブのときだけ暗い台紙＋金に切り替える（変数を差し替えるだけで全体が反転） */
+  body.dark {
+    --bg: #15120D;
+    --card: #1F1B15;
+    --cardbd: #3A3328;
+    --ink: #EDE6D6;
+    --sub: #A89F8C;
+    --line: #3A3328;
+    --leadc: #5A4E2F;
+    --gold: #C9A24B;
+    --goldlt: #D8B45A;
+    --gdeep: #B98F3C;
+    --rbest: #D8B45A;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.55;
+    padding-bottom: 92px;
+    transition: background-color .25s ease;
+  }
+  header {
+    position: sticky; top: 0; z-index: 20;
+    background: var(--bg);
+    color: var(--ink);
+    text-align: center;
+    padding: 14px 16px 12px;
+    padding-top: max(14px, env(safe-area-inset-top));
+    border-bottom: 1px solid var(--line);
+    transition: background-color .25s ease, border-color .25s ease;
+  }
+  header .eyebrow { font-family: var(--serif); font-size: 11px; letter-spacing: .34em; color: var(--gold); }
+  header h1 { margin: 5px 0 0; font-family: var(--serif); font-size: 20px; font-weight: 500; letter-spacing: .05em; }
+  header .sub { font-size: 11px; color: var(--sub); margin-top: 4px; }
+
+  main { max-width: 640px; margin: 0 auto; padding: 16px; }
+
+  /* tab bar */
+  nav.tabs {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 30;
+    display: flex; background: var(--bg);
+    border-top: 1px solid var(--line);
+    padding-bottom: env(safe-area-inset-bottom);
+    transition: background-color .25s ease, border-color .25s ease;
+  }
+  nav.tabs button {
+    flex: 1; border: none; background: none; padding: 9px 4px 11px;
+    font-size: 11px; color: var(--sub); cursor: pointer;
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    font-family: var(--serif); letter-spacing: .05em;
+  }
+  nav.tabs button .ic { line-height: 0; padding: 4px 0; }
+  nav.tabs button .ic svg { width: 22px; height: 22px; display: block; }
+  nav.tabs button.active { color: var(--gold); box-shadow: inset 0 2px 0 var(--gold); }
+  /* 殿堂タブだけ：アイコン背後に暗い“しおり”チップ＋金のトロフィー（常時） */
+  nav.tabs button[data-tab="hall"] .ic { background: #15120D; padding: 4px 13px; border-radius: 999px; }
+  nav.tabs button[data-tab="hall"] .ic svg { stroke: #D8B45A; }
+
+  .section-title { font-family: var(--serif); font-size: 13px; letter-spacing: .12em; font-weight: 500; color: var(--gold); margin: 8px 2px 16px; text-align: center; }
+
+  /* cards */
+  .card {
+    background: var(--card); border-radius: 8px; border: 1px solid var(--cardbd);
+    padding: 15px 16px; margin-bottom: 14px; box-shadow: 0 1px 2px rgba(70,50,20,.04);
+  }
+  /* もう行かない／閉店：理由バッジは淡くせず、中身（店名・メニュー等）だけ淡くする */
+  .card.demoted .store-name,
+  .card.demoted .store-meta,
+  .card.demoted .want-row,
+  .card.demoted .menu-line,
+  .card.demoted .add-dish { opacity: .45; filter: grayscale(.4); }
+  .card .row { display: flex; align-items: flex-start; gap: 10px; }
+  .store-name { font-family: var(--serif); font-size: 17px; font-weight: 500; color: var(--ink); flex: 1; letter-spacing: .02em; }
+  .store-meta { font-size: 12px; color: var(--sub); margin-top: 4px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .map-link { color: var(--gold); text-decoration: none; font-weight: 500; border-bottom: 1px solid rgba(166,130,47,.4); }
+  .map-link:active { opacity: .6; }
+
+  /* badges */
+  .badge { display: inline-block; font-family: var(--serif); font-size: 11px; font-weight: 500; padding: 3px 11px; border-radius: 999px; white-space: nowrap; background: transparent; }
+  .b-best { background: rgba(166,130,47,.13); color: #5F4611; border: 1px solid rgba(166,130,47,.32); }
+  .b-good { color: var(--sub); border: 1px solid var(--line); }
+  .b-went { color: var(--sub); border: 1px solid var(--line); }
+  .b-want { color: var(--gdeep); border: 1px solid rgba(166,130,47,.45); }
+  .b-never { background: #F2E3DD; color: #8A4A38; border: 1px solid #D9B5A8; }
+  .b-closed { background: #E7E1D5; color: #6F6857; border: 1px solid #CFC4AB; }
+
+  /* type label */
+  .tlabel { font-family: var(--serif); font-size: 11px; letter-spacing: .1em; color: var(--sub); border: 1px solid var(--line); border-radius: 3px; padding: 1px 6px; white-space: nowrap; }
+
+  /* inline trophy icon (最高に値する) */
+  .tr { width: 13px; height: 13px; vertical-align: -2px; margin-right: 3px; display: inline-block; }
+
+  /* 行きたい（お気に入り）タグ：ワンタップ・トグル */
+  .want-row { margin-top: 11px; }
+  .want-tag {
+    font-family: var(--serif); font-size: 11px; letter-spacing: .04em;
+    padding: 3px 12px; border-radius: 999px; cursor: pointer; white-space: nowrap;
+    display: inline-flex; align-items: center; gap: 4px; user-select: none;
+  }
+  .want-tag.on { background: var(--gold); color: #FBF7EE; border: 1px solid var(--gold); }
+  .want-tag.on:active { background: var(--gdeep); }
+  .want-tag.off { background: transparent; color: #B6AB92; border: 1px dashed #CFC4AB; }
+  .want-tag.off:active { background: rgba(166,130,47,.06); }
+  .want-tag .wt-ic { width: 12px; height: 12px; display: inline-block; }
+
+  /* menus inside store / hall */
+  .menu-line { display: flex; align-items: baseline; gap: 8px; padding: 9px 0; border-top: 1px solid var(--line); cursor: pointer; }
+  .menu-line:first-child { border-top: none; }
+  .menu-name { font-family: var(--serif); font-size: 14px; color: var(--ink); }
+  .lead { flex: 1; border-bottom: 1px dotted var(--leadc); margin: 0 8px; position: relative; top: -4px; min-width: 14px; }
+  .rating { font-family: var(--serif); font-size: 12px; white-space: nowrap; }
+  .rating.r-best { color: var(--rbest); }
+  .rating.r-good { color: var(--sub); }
+  .rating.r-no { color: #B8AE98; }
+  /* お店画面では「最高に値する」を一段目立たせる（金の下地チップ＋濃い金）。殿堂タブ=暗い側は対象外 */
+  body:not(.dark) .menu-line .rating.r-best {
+    color: #5F4611; background: rgba(166,130,47,.13); font-weight: 500;
+    padding: 2px 10px; border-radius: 999px;
+  }
+  .hall-sec { font-family: var(--serif); font-size: 11px; letter-spacing: .24em; color: var(--gold); border-bottom: 1px solid var(--line); padding-bottom: 5px; margin: 16px 0 9px; }
+  .hall-sec:first-child { margin-top: 2px; }
+  .add-dish { text-align: center; color: var(--gold); font-family: var(--serif); font-size: 12px; padding: 12px 0 2px; cursor: pointer; letter-spacing: .04em; }
+
+  /* buttons */
+  button.btn {
+    font-family: var(--serif); cursor: pointer; border: none; border-radius: 8px;
+    font-weight: 500; font-size: 14px; padding: 12px 16px; letter-spacing: .04em;
+  }
+  .btn-primary { background: var(--gold); color: #FBF7EE; }
+  .btn-primary:active { background: var(--gdeep); }
+  .btn-ghost { background: transparent; color: var(--gold); border: 1px solid var(--gold); }
+  .btn-danger { background: transparent; color: #9A4A38; border: 1px solid #C18A78; }
+  .btn-block { width: 100%; }
+  .btn-sm { font-size: 12px; padding: 8px 12px; border-radius: 7px; }
+
+  /* floating add button */
+  .fab {
+    position: fixed; right: 16px; bottom: calc(80px + env(safe-area-inset-bottom));
+    border: none; border-radius: 999px;
+    background: var(--gold); color: #FBF7EE;
+    font-family: var(--serif); font-size: 14px; letter-spacing: .04em; line-height: 1;
+    padding: 13px 20px; cursor: pointer; z-index: 35; box-shadow: 0 4px 14px rgba(60,45,20,.25);
+    display: inline-flex; align-items: center;
+  }
+  .fab:active { background: var(--gdeep); }
+  .fab.hidden { display: none; }
+
+  /* filters */
+  .filters { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 14px; }
+  .chip {
+    font-family: var(--serif); font-size: 12px; padding: 6px 13px; border-radius: 999px;
+    border: 1px solid var(--line); background: transparent; color: var(--sub); cursor: pointer; letter-spacing: .04em;
+  }
+  .chip.on { background: var(--gold); border-color: var(--gold); color: #FBF7EE; }
+
+  /* modal */
+  .overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 40;
+    display: flex; align-items: center; justify-content: center; padding: 16px;
+  }
+  /* 非表示は display:none ではなく opacity/visibility で（iOS Safari が
+     display 切り替えだと閉じたオーバーレイを再描画せず残してしまうため） */
+  .overlay.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+  .sheet {
+    background: var(--bg); width: 100%; max-width: 560px; max-height: 88vh; overflow-y: auto;
+    border-radius: 14px; border: 1px solid var(--cardbd); padding: 20px 18px 24px;
+    box-shadow: 0 12px 40px rgba(40,30,15,.3);
+  }
+  .sheet h2 { font-family: var(--serif); font-size: 18px; font-weight: 500; color: var(--ink); margin: 0 0 16px; letter-spacing: .03em; }
+  .sheet .close-x { float: right; background: none; border: none; font-size: 22px; color: var(--sub); cursor: pointer; line-height: 1; }
+
+  label.field { display: block; margin-bottom: 14px; font-size: 13px; font-weight: 500; color: var(--ink); }
+  label.field input, label.field select {
+    display: block; width: 100%; margin-top: 6px; padding: 11px 12px;
+    border: 1px solid var(--line); border-radius: 8px; font-size: 16px; font-family: inherit;
+    background: var(--card); color: var(--ink);
+  }
+  label.field input:focus { outline: none; border-color: var(--gold); }
+  .seg { display: flex; gap: 6px; margin-top: 6px; }
+  .seg button {
+    flex: 1; font-family: var(--serif); font-size: 13px; font-weight: 500; padding: 10px 4px;
+    border: 1px solid var(--line); background: var(--card); border-radius: 8px; cursor: pointer; color: var(--sub);
+  }
+  .seg button.on { color: #FBF7EE; border-color: transparent; }
+  .seg button.on.r-best { background: var(--gold); }
+  .seg button.on.r-good { background: #8A8068; }
+  .seg button.on.r-no { background: #B8AE98; }
+  .seg button.on.t-pasta { background: #9A6B3F; }
+  .seg button.on.t-pizza { background: #A85A4A; }
+  .seg button.on.t-other { background: #8A8068; }
+  .seg button.on.plain { background: var(--gold); }
+
+  .toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-top: 1px solid var(--line); }
+  .toggle-row .lbl { font-size: 14px; font-weight: 500; color: var(--ink); }
+  .toggle-row .hint { font-size: 11px; color: var(--sub); }
+  .switch { position: relative; width: 50px; height: 28px; }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .slider { position: absolute; inset: 0; background: #CABFA3; border-radius: 999px; transition: .2s; cursor: pointer; }
+  .slider:before { content: ""; position: absolute; height: 22px; width: 22px; left: 3px; top: 3px; background: #FBF7EE; border-radius: 50%; transition: .2s; }
+  .switch input:checked + .slider { background: var(--gold); }
+  .switch input:checked + .slider:before { transform: translateX(22px); }
+
+  .empty { text-align: center; color: var(--sub); padding: 50px 20px; }
+  .empty .big { font-family: var(--serif); font-size: 28px; margin-bottom: 12px; color: var(--gold); letter-spacing: .14em; }
+
+  /* confirm dialog */
+  .confirm-sheet { max-width: 420px; }
+  .confirm-msg { font-size: 15px; line-height: 1.7; margin: 6px 2px 20px; }
+  .confirm-actions { display: flex; gap: 10px; }
+  .confirm-actions button { flex: 1; }
+
+  /* toast */
+  .toast {
+    position: fixed; left: 50%; bottom: calc(84px + env(safe-area-inset-bottom));
+    transform: translateX(-50%);
+    background: #2A2418; color: #F3EEE1; padding: 11px 18px; border-radius: 999px;
+    font-family: var(--serif); font-size: 13px; z-index: 60; box-shadow: 0 4px 14px rgba(40,30,15,.3);
+    transition: opacity .25s; max-width: 80%; text-align: center; letter-spacing: .03em;
+  }
+  .toast.hidden { opacity: 0; pointer-events: none; }
+
+  .hr { height: 1px; background: var(--line); border: none; margin: 18px 0; }
+  .tools { display: flex; gap: 8px; margin-top: 6px; }
+  .tools button { flex: 1; }
+  .count-pill { font-size: 12px; color: var(--sub); margin-left: 6px; }
+</style>
+</head>
+<body>
+<header>
+  <div class="eyebrow">LA MIA LISTA</div>
+  <h1>イタリアン記録</h1>
+  <div class="sub">わたしだけの、最高の一皿コレクション</div>
+</header>
+
+<main id="view"></main>
+
+<button id="fab" class="fab hidden" onclick="openStore()">＋ お店を追加</button>
+
+<nav class="tabs">
+  <button data-tab="hall" class="active"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8"/><path d="M12 17v4"/><path d="M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 5H4v2a3 3 0 0 0 3 3"/><path d="M17 5h3v2a3 3 0 0 1-3 3"/></svg></span>殿堂</button>
+  <button data-tab="stores"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v6a2 2 0 0 0 2 2M8 3v6M11 3v6M10 11v10"/><path d="M16 3c-1.4 0-2.5 1.9-2.5 4.5S14.6 12 16 12m0-9v18"/></svg></span>お店</button>
+  <button data-tab="data"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h9M17 7h3"/><circle cx="15" cy="7" r="2"/><path d="M4 17h3M11 17h9"/><circle cx="9" cy="17" r="2"/></svg></span>データ</button>
+</nav>
+
+<!-- store edit sheet -->
+<div class="overlay hidden" id="storeOverlay">
+  <div class="sheet" id="storeSheet"></div>
+</div>
+<!-- menu add sheet -->
+<div class="overlay hidden" id="menuOverlay">
+  <div class="sheet" id="menuSheet"></div>
+</div>
+<!-- confirm dialog -->
+<div class="overlay hidden" id="confirmOverlay">
+  <div class="sheet confirm-sheet" id="confirmSheet"></div>
+</div>
+<!-- toast -->
+<div id="toast" class="toast hidden"></div>
+
+<script>
+"use strict";
+
+/* ---------- データの保存・読み込み ---------- */
+const KEY = "italian_record_v1";
+function load() {
+  try { return JSON.parse(localStorage.getItem(KEY)) || { stores: [] }; }
+  catch (e) { return { stores: [] }; }
+}
+function save() { localStorage.setItem(KEY, JSON.stringify(db)); }
+let db = load();
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+
+/* ---------- 評価・タグの定義 ---------- */
+const RATINGS = {
+  best: { label: "最高に値する", short: "殿堂", dot: "🏆", cls: "r-best" },
+  good: { label: "かなりいい",   short: "リピート", dot: "👍", cls: "r-good" },
+  no:   { label: "そうじゃない", short: "—", dot: "·", cls: "r-no" },
+};
+const TYPES = {
+  pasta: { label: "パスタ", latin: "PASTA", icon: "🍝", cls: "tag-pasta", segCls: "t-pasta" },
+  pizza: { label: "ピザ",   latin: "PIZZA", icon: "🍕", cls: "tag-pizza", segCls: "t-pizza" },
+  other: { label: "その他", latin: "ALTRO", icon: "🍴", cls: "tag-other", segCls: "t-other" },
+};
+const AREAS = ["豊橋", "浜松", "その他"];
+// エリアごとの最寄り駅（徒歩分数の基準）。その他は駅基準なし。
+const STATIONS = { "豊橋": "豊橋駅", "浜松": "浜松駅" };
+// 店名+エリアでGoogleマップ検索を開くリンクを作る（特定URLの誤りを避けるため検索形式）
+function mapsSearchUrl(name, area) {
+  const q = encodeURIComponent(`${name} ${area === "その他" ? "" : area} イタリアン`.trim());
+  return `https://www.google.com/maps/search/?api=1&query=${q}`;
+}
+// 「最高に値する」を示すトロフィーアイコン（線画・現在の文字色を継ぐ）
+const TROPHY = `<svg class="tr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 5H4v2a3 3 0 0 0 3 3"/><path d="M17 5h3v2a3 3 0 0 1-3 3"/></svg>`;
+
+/* ---------- 店ステータスの自動計算 ---------- */
+// メニューの評価から店の状態を導く（持つのではなく計算する）
+function storeStatus(store) {
+  const hasBest = store.menus.some(m => m.rating === "best");
+  const hasGood = store.menus.some(m => m.rating === "good");
+  if (hasBest) return { key: "best", label: "最高メニューあり", cls: "b-best" };
+  if (hasGood) return { key: "good", label: "かなりいいメニューあり", cls: "b-good" };
+  if (store.menus.length > 0) return { key: "went", label: "行った", cls: "b-went" };
+  return { key: "none", label: "未訪問", cls: "b-went" };
+}
+
+/* ---------- 画面の状態 ---------- */
+let tab = "hall";
+const filters = { area: "all", wantOnly: false, hideClosed: false };
+
+/* ---------- 描画 ---------- */
+const view = document.getElementById("view");
+const esc = s => (s || "").replace(/[&<>"]/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c]));
+
+function render() {
+  document.querySelectorAll("nav.tabs button").forEach(b =>
+    b.classList.toggle("active", b.dataset.tab === tab));
+  document.getElementById("fab").classList.toggle("hidden", tab !== "stores");
+  document.body.classList.toggle("dark", tab === "hall"); // 殿堂タブだけ暗い台紙に
+  if (tab === "hall") renderHall();
+  else if (tab === "stores") renderStores();
+  else renderData();
+}
+
+/* === 殿堂タブ：最高メニューを「一冊のメニュー表」として表示 === */
+function renderHall() {
+  const items = [];
+  db.stores.forEach(s => s.menus.forEach(m => {
+    if (m.rating === "best") items.push({ store: s, menu: m });
+  }));
+  let html = `<div class="section-title">殿堂入りの一皿 ・ ${items.length}皿</div>`;
+  if (items.length === 0) {
+    html += `<div class="empty"><div class="big">Vuoto</div>まだ殿堂入りの一皿はありません。<br>「お店」で食べた一皿を記録して、<br>最高の一皿を見つけよう。</div>`;
+  } else {
+    html += `<div class="card">`;
+    Object.keys(TYPES).forEach(tk => {
+      const group = items.filter(x => x.menu.type === tk);
+      if (!group.length) return;
+      html += `<div class="hall-sec">${TYPES[tk].latin}</div>`;
+      group.forEach(({ store, menu }) => {
+        html += `<div class="menu-line" onclick="editMenu('${store.id}','${menu.id}')">
+          <span class="menu-name">${esc(menu.name)}</span>
+          <span class="lead"></span>
+          <span class="rating r-best">${esc(store.name)}・${esc(store.area)}</span>
+        </div>`;
+      });
+    });
+    html += `</div>`;
+  }
+  view.innerHTML = html;
+}
+
+/* === お店タブ === */
+function renderStores() {
+  let html = "";
+  // フィルタ
+  html += `<div class="filters">`;
+  html += chip("all", "すべて", filters.area === "all", `setArea('all')`);
+  AREAS.forEach(a => html += chip(a, a, filters.area === a, `setArea('${a}')`));
+  html += `</div><div class="filters">`;
+  html += chip("w", "行きたいだけ", filters.wantOnly, `toggleFilter('wantOnly')`);
+  html += chip("c", "閉店をかくす", filters.hideClosed, `toggleFilter('hideClosed')`);
+  html += `</div>`;
+
+  let list = db.stores.slice();
+  if (filters.area !== "all") list = list.filter(s => s.area === filters.area);
+  if (filters.wantOnly) list = list.filter(s => s.wantToGo);
+  if (filters.hideClosed) list = list.filter(s => !s.closed);
+  // 並び順：通常 → もう行かない → 閉店 の順に下へ沈める。同グループ内はメニュー評価順。
+  const order = { best: 0, good: 1, went: 2, none: 3 };
+  const sink = s => (s.closed ? 2 : 0) + (s.neverAgain ? 1 : 0);
+  list.sort((a, b) => {
+    const d = sink(a) - sink(b);
+    if (d !== 0) return d;
+    return order[storeStatus(a).key] - order[storeStatus(b).key];
+  });
+
+  if (list.length === 0) {
+    html += `<div class="empty"><div class="big">Lista</div>お店がありません。<br>右下の ＋ から登録できます。</div>`;
+  } else {
+    list.forEach(s => html += storeCard(s));
+  }
+  view.innerHTML = html;
+}
+
+function chip(id, label, on, onclick) {
+  return `<button class="chip ${on ? "on" : ""}" onclick="${onclick}">${esc(label)}</button>`;
+}
+
+function storeCard(s) {
+  const st = storeStatus(s);
+  const total = s.menus.length;
+  // 状態バッジ（最高に値する＝トロフィー付きの金、それ以外は控えめ）
+  let badges = st.key === "best"
+    ? `<span class="badge b-best">${TROPHY}最高に値するメニューあり</span>`
+    : `<span class="badge ${st.cls}">${st.label}</span>`;
+  if (s.neverAgain) badges += `<span class="badge b-never">もう行かない</span>`;
+  if (s.closed) badges += `<span class="badge b-closed">閉店</span>`;
+
+  // メタ（絵文字なし・メニュー表の見出し風）
+  const station = STATIONS[s.area];
+  const metaParts = [esc(s.area)];
+  if (s.walkMin != null) metaParts.push(`${station ? station : "駅"} 徒歩${s.walkMin}分`);
+  if (s.budget) metaParts.push(esc(s.budget));
+  let meta = `<span>${metaParts.join(" ／ ")}</span>`;
+  if (s.mapUrl && /^https?:\/\//.test(s.mapUrl))
+    meta += `<a class="map-link" href="${esc(s.mapUrl)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">地図</a>`;
+
+  // メニュー（評価を価格欄のように右に文字で）
+  let menusHtml = "";
+  if (total > 0) {
+    s.menus.forEach(m => {
+      const r = RATINGS[m.rating], t = TYPES[m.type];
+      menusHtml += `<div class="menu-line" onclick="event.stopPropagation();editMenu('${s.id}','${m.id}')">
+        <span class="tlabel">${t.latin}</span>
+        <span class="menu-name">${esc(m.name)}</span>
+        <span class="lead"></span>
+        <span class="rating r-${m.rating}">${m.rating === "best" ? TROPHY : ""}${r.label}</span>
+      </div>`;
+    });
+  } else {
+    menusHtml = `<div class="store-meta" style="margin-top:10px">まだ一皿も記録がありません</div>`;
+  }
+
+  const demoted = s.closed || s.neverAgain;
+  return `<div class="card${demoted ? " demoted" : ""}">
+    <div class="row" onclick="openStore('${s.id}')" style="cursor:pointer">
+      <div style="flex:1">
+        <div class="store-name">${esc(s.name)}</div>
+        <div class="store-meta">${meta}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:5px;align-items:flex-end">${badges}</div>
+    </div>
+    ${s.neverAgain ? "" : `<div class="want-row"><span class="want-tag ${s.wantToGo ? "on" : "off"}" onclick="event.stopPropagation();toggleWant('${s.id}')">行きたい</span></div>`}
+    <div style="border-top:1px solid var(--line);margin-top:12px;padding-top:2px">${menusHtml}</div>
+    <div class="add-dish" onclick="addMenu('${s.id}')">＋ 食べた一皿を加える</div>
+  </div>`;
+}
+
+/* === データタブ：バックアップ === */
+function renderData() {
+  const storeN = db.stores.length;
+  const menuN = db.stores.reduce((n, s) => n + s.menus.length, 0);
+  const bestN = db.stores.reduce((n, s) => n + s.menus.filter(m => m.rating === "best").length, 0);
+  view.innerHTML = `
+    <div class="section-title">データ</div>
+    <div class="card">
+      <div class="store-meta" style="font-size:14px">
+        <span>お店 ${storeN}</span><span>メニュー ${menuN}</span><span>殿堂 ${bestN}</span>
+      </div>
+    </div>
+    <div class="card">
+      <div style="font-weight:700;margin-bottom:4px">バックアップ</div>
+      <div class="store-meta" style="margin-bottom:12px">記録はこのブラウザの中だけに保存されています。スマホへ移したり、消えたとき用に書き出しておけます。評価は上書きされません。</div>
+      <div class="tools">
+        <button class="btn btn-ghost btn-sm" onclick="exportData()">⬇️ 書き出す</button>
+        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('importFile').click()">⬆️ 読み込む</button>
+      </div>
+      <input type="file" id="importFile" accept="application/json" style="display:none" onchange="importData(event)">
+    </div>
+    <div class="card">
+      <div style="font-weight:700;margin-bottom:8px">初期データ（豊橋・浜松）</div>
+      <div class="store-meta" style="margin-bottom:12px">豊橋駅・浜松駅まわりのイタリアンを一覧に入れます（未訪問の状態で。「行きたい」は後からお好みで付けてください）。Claude調査の<b>叩き台</b>なので、実際の営業状況・徒歩分数・予算はご確認ください。同じ名前の店は追加しません（評価は守られます）。</div>
+      <button class="btn btn-ghost btn-sm btn-block" onclick="loadInitial()">豊橋・浜松の初期データを入れる</button>
+    </div>
+    <div class="card">
+      <div style="font-weight:700;margin-bottom:8px">サンプルデータ</div>
+      <div class="store-meta" style="margin-bottom:12px">使い方を試したいとき用に、お試しの店を3件入れられます。</div>
+      <button class="btn btn-ghost btn-sm btn-block" onclick="loadSample()">サンプルを追加</button>
+    </div>
+    <hr class="hr">
+    <button class="btn btn-danger btn-block" onclick="wipe()">すべての記録を消す</button>
+  `;
+}
+
+/* ---------- 共通ヘルパー ---------- */
+// シートを閉じて再描画する処理は、クリック処理が終わった次のフレームに回す。
+// （クリックされたボタンを含むシートを処理中に消すと、一部ブラウザが再描画を
+//   次の操作まで先送りしてしまうため。data自体は呼び出し側で先に保存しておく）
+function uiAfter(fn) { setTimeout(fn, 0); }
+
+// 画面内の確認ダイアログ（標準のconfirmの置き換え）。Promiseでtrue/falseを返す。
+const confirmOverlay = document.getElementById("confirmOverlay");
+const confirmSheet = document.getElementById("confirmSheet");
+function askConfirm(message, opts) {
+  opts = opts || {};
+  const okLabel = opts.okLabel || "OK";
+  const danger = !!opts.danger;
+  return new Promise(resolve => {
+    confirmSheet.innerHTML = `
+      <div class="confirm-msg">${message}</div>
+      <div class="confirm-actions">
+        <button class="btn btn-ghost" id="cf_no">キャンセル</button>
+        <button class="btn ${danger ? "btn-danger" : "btn-primary"}" id="cf_yes">${okLabel}</button>
+      </div>`;
+    confirmOverlay.classList.remove("hidden");
+    const done = val => { resolve(val); uiAfter(() => confirmOverlay.classList.add("hidden")); };
+    confirmSheet.querySelector("#cf_yes").onclick = () => done(true);
+    confirmSheet.querySelector("#cf_no").onclick = () => done(false);
+  });
+}
+
+// 画面下に一瞬出るメッセージ（標準のalertの置き換え）
+const toastEl = document.getElementById("toast");
+let toastTimer;
+function toast(msg) {
+  toastEl.textContent = msg;
+  toastEl.classList.remove("hidden");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toastEl.classList.add("hidden"), 1800);
+}
+
+/* ---------- 操作 ---------- */
+window.setArea = a => { filters.area = a; render(); };
+window.toggleFilter = k => { filters[k] = !filters[k]; render(); };
+// 「行きたい」をワンタップでトグル（来店状態とは独立した手動フラグ）
+window.toggleWant = function (id) {
+  const s = db.stores.find(x => x.id === id);
+  if (!s) return;
+  s.wantToGo = !s.wantToGo;
+  if (s.wantToGo) s.neverAgain = false; // 「行きたい」と「もう行かない」は相互排他
+  save();
+  uiAfter(() => { render(); toast(s.wantToGo ? "行きたいに追加しました" : "行きたいを解除しました"); });
+};
+
+/* 店の追加・編集シート */
+const storeOverlay = document.getElementById("storeOverlay");
+const storeSheet = document.getElementById("storeSheet");
+let editing = { areaSel: AREAS[0] };
+
+window.openStore = function (id) {
+  const s = id ? db.stores.find(x => x.id === id) : null;
+  editing = {
+    id: s ? s.id : null,
+    areaSel: s ? s.area : AREAS[0],
+    wantToGo: s ? s.wantToGo : false,
+    closed: s ? s.closed : false,
+    neverAgain: s ? s.neverAgain : false,
+  };
+  storeSheet.innerHTML = `
+    <button class="close-x" onclick="closeStore()">✕</button>
+    <h2>${s ? "お店を編集" : "お店を追加"}</h2>
+    <label class="field">店名
+      <input id="f_name" value="${s ? esc(s.name) : ""}" placeholder="例：トラットリア◯◯">
+    </label>
+    <label class="field">エリア
+      <div class="seg" id="f_area">
+        ${AREAS.map(a => `<button class="${editing.areaSel === a ? "on plain" : ""}" onclick="pickArea('${a}')">${a}</button>`).join("")}
+      </div>
+    </label>
+    <label class="field">予算（任意）
+      <input id="f_budget" value="${s ? esc(s.budget || "") : ""}" placeholder="例：〜2000円 / ランチ1500円">
+    </label>
+    <label class="field">駅から徒歩（分・任意）
+      <input id="f_walk" type="number" inputmode="numeric" min="0" value="${s && s.walkMin != null ? s.walkMin : ""}" placeholder="例：7（豊橋駅／浜松駅から）">
+    </label>
+    <label class="field">Googleマップ リンク（任意）
+      <input id="f_map" type="url" value="${s ? esc(s.mapUrl || "") : ""}" placeholder="https://maps.google.com/...">
+    </label>
+    <div class="toggle-row">
+      <div><div class="lbl">行きたい</div><div class="hint">お気に入り。来店の有無に関係なく付けられます</div></div>
+      ${switchHtml("t_want", editing.wantToGo, `onclick="if(this.checked){var n=document.getElementById('t_never');if(n)n.checked=false;}"`)}
+    </div>
+    ${s ? `
+    <div class="toggle-row">
+      <div><div class="lbl">もう行かない</div><div class="hint">「行きたい」とは反対の気持ち。付けると一覧の下にグレーで沈みます</div></div>
+      ${switchHtml("t_never", editing.neverAgain, `onclick="if(this.checked)document.getElementById('t_want').checked=false;"`)}
+    </div>
+    <div class="toggle-row">
+      <div><div class="lbl">閉店</div><div class="hint">消さずにグレーで記録を残します</div></div>
+      ${switchHtml("t_closed", editing.closed)}
+    </div>` : ""}
+    <button class="btn btn-primary btn-block" style="margin-top:16px" onclick="saveStore()">保存</button>
+    ${s ? `<button class="btn btn-danger btn-block" style="margin-top:10px" onclick="deleteStore('${s.id}')">このお店を削除</button>` : ""}
+  `;
+  storeOverlay.classList.remove("hidden");
+};
+window.pickArea = a => {
+  editing.areaSel = a;
+  document.querySelectorAll("#f_area button").forEach(b =>
+    b.classList.toggle("on", b.textContent === a) && b.classList.toggle("plain", b.textContent === a));
+  document.querySelectorAll("#f_area button").forEach(b => {
+    const on = b.textContent === a;
+    b.classList.toggle("on", on); b.classList.toggle("plain", on);
+  });
+};
+function switchHtml(id, on, attrs) {
+  return `<label class="switch"><input type="checkbox" id="${id}" ${on ? "checked" : ""} ${attrs || ""}><span class="slider"></span></label>`;
+}
+window.closeStore = () => storeOverlay.classList.add("hidden");
+window.saveStore = function () {
+  const name = document.getElementById("f_name").value.trim();
+  if (!name) { toast("店名を入れてください"); return; }
+  const budget = document.getElementById("f_budget").value.trim();
+  const walkRaw = document.getElementById("f_walk").value.trim();
+  const walkMin = walkRaw === "" ? null : Math.max(0, parseInt(walkRaw, 10) || 0);
+  const mapUrl = document.getElementById("f_map").value.trim();
+  const wantToGo = document.getElementById("t_want").checked;
+  // 「もう行かない」「閉店」は編集時のみ表示。追加時は要素が無いので false 扱い
+  const neverEl = document.getElementById("t_never");
+  const closedEl = document.getElementById("t_closed");
+  const neverAgain = neverEl ? neverEl.checked : false;
+  const closed = closedEl ? closedEl.checked : false;
+  const adding = !editing.id;
+  if (editing.id) {
+    const s = db.stores.find(x => x.id === editing.id);
+    s.name = name; s.area = editing.areaSel; s.budget = budget;
+    s.walkMin = walkMin; s.mapUrl = mapUrl;
+    s.wantToGo = wantToGo; s.neverAgain = neverAgain; s.closed = closed;
+  } else {
+    db.stores.push({ id: uid(), name, area: editing.areaSel, budget, walkMin, mapUrl, wantToGo, neverAgain, closed, menus: [] });
+  }
+  save(); tab = "stores";
+  uiAfter(() => { closeStore(); render(); toast(adding ? "お店を追加しました" : "保存しました"); });
+};
+window.deleteStore = async function (id) {
+  if (!await askConfirm("このお店と、記録したメニューも消えます。よろしいですか？", { danger: true, okLabel: "削除する" })) return;
+  db.stores = db.stores.filter(s => s.id !== id);
+  save();
+  uiAfter(() => { closeStore(); render(); toast("お店を削除しました"); });
+};
+
+/* メニューの追加・編集シート */
+const menuOverlay = document.getElementById("menuOverlay");
+const menuSheet = document.getElementById("menuSheet");
+let mEdit = {};
+
+window.addMenu = id => openMenu(id, null);
+window.editMenu = (sid, mid) => openMenu(sid, mid);
+
+function openMenu(storeId, menuId) {
+  const store = db.stores.find(s => s.id === storeId);
+  const m = menuId ? store.menus.find(x => x.id === menuId) : null;
+  mEdit = { storeId, menuId, type: m ? m.type : "pasta", rating: m ? m.rating : "good" };
+  menuSheet.innerHTML = `
+    <button class="close-x" onclick="closeMenu()">✕</button>
+    <h2>${m ? "メニューを編集" : "メニューを記録"} <span class="count-pill">${esc(store.name)}</span></h2>
+    <label class="field">メニュー名
+      <input id="m_name" value="${m ? esc(m.name) : ""}" placeholder="例：ウニのクリームパスタ">
+    </label>
+    <label class="field">種類
+      <div class="seg" id="m_type">
+        ${Object.entries(TYPES).map(([k, t]) =>
+          `<button class="${mEdit.type === k ? "on " + t.segCls : ""}" onclick="pickType('${k}')">${t.label}</button>`).join("")}
+      </div>
+    </label>
+    <label class="field">評価
+      <div class="seg" id="m_rating" style="flex-direction:column;gap:8px">
+        ${Object.entries(RATINGS).map(([k, r]) =>
+          `<button class="${mEdit.rating === k ? "on " + r.cls : ""}" onclick="pickRating('${k}')" style="text-align:left">${r.label}</button>`).join("")}
+      </div>
+    </label>
+    <button class="btn btn-primary btn-block" style="margin-top:8px" onclick="saveMenu()">保存</button>
+    ${m ? `<button class="btn btn-danger btn-block" style="margin-top:10px" onclick="deleteMenu()">このメニューを削除</button>` : ""}
+  `;
+  menuOverlay.classList.remove("hidden");
+}
+window.pickType = k => {
+  mEdit.type = k;
+  document.querySelectorAll("#m_type button").forEach((b, i) => {
+    const key = Object.keys(TYPES)[i]; const on = key === k;
+    b.className = on ? "on " + TYPES[key].segCls : "";
+  });
+};
+window.pickRating = k => {
+  mEdit.rating = k;
+  document.querySelectorAll("#m_rating button").forEach((b, i) => {
+    const key = Object.keys(RATINGS)[i]; const on = key === k;
+    b.className = on ? "on " + RATINGS[key].cls : "";
+    b.style.textAlign = "left";
+  });
+};
+window.closeMenu = () => menuOverlay.classList.add("hidden");
+window.saveMenu = function () {
+  const name = document.getElementById("m_name").value.trim();
+  if (!name) { toast("メニュー名を入れてください"); return; }
+  const store = db.stores.find(s => s.id === mEdit.storeId);
+  const adding = !mEdit.menuId;
+  if (mEdit.menuId) {
+    const m = store.menus.find(x => x.id === mEdit.menuId);
+    m.name = name; m.type = mEdit.type; m.rating = mEdit.rating;
+  } else {
+    store.menus.push({ id: uid(), name, type: mEdit.type, rating: mEdit.rating });
+  }
+  save();
+  uiAfter(() => { closeMenu(); render(); toast(adding ? "メニューを記録しました" : "保存しました"); });
+};
+window.deleteMenu = async function () {
+  if (!await askConfirm("このメニューの記録を消します。よろしいですか？", { danger: true, okLabel: "削除する" })) return;
+  const store = db.stores.find(s => s.id === mEdit.storeId);
+  store.menus = store.menus.filter(m => m.id !== mEdit.menuId);
+  save();
+  uiAfter(() => { closeMenu(); render(); toast("メニューを削除しました"); });
+};
+
+/* 初期データ（豊橋・浜松のイタリアン）
+   ※ Claude調査の叩き台。徒歩分数は各店ページの表示を基準にした目安、予算・営業状況は要確認。
+      mapUrlは「店名+エリア」でGoogleマップ検索を開く形式（特定URLの取り違えを避けるため）。 */
+const INITIAL_STORES = [
+  // 豊橋（豊橋駅から徒歩）
+  { name: "バッカーノ", area: "豊橋", budget: "〜4,000円", walkMin: 2 },
+  { name: "ワインアンドビール ヘルプ", area: "豊橋", budget: "〜3,000円", walkMin: 2 },
+  { name: "スパゲッ亭チャオ 本店", area: "豊橋", budget: "〜2,000円", walkMin: 3 },
+  { name: "Isola", area: "豊橋", budget: "〜4,000円", walkMin: 3 },
+  { name: "FUCA", area: "豊橋", budget: "ランチ〜1,000円", walkMin: 4 },
+  { name: "イタリア食堂 がぶ飲みワイン ドバール", area: "豊橋", budget: "〜3,000円", walkMin: 4 },
+  { name: "Kado", area: "豊橋", budget: "〜5,000円", walkMin: 5 },
+  { name: "我楽多", area: "豊橋", budget: "〜3,000円", walkMin: 5 },
+  { name: "蜂蜜とチーズのイタリアン Honey Table 豊橋店", area: "豊橋", budget: "〜3,000円", walkMin: 7 },
+  { name: "レストラン・フラスカティ", area: "豊橋", budget: "〜8,000円", walkMin: 7 },
+  { name: "Buono Buono", area: "豊橋", budget: "〜4,000円", walkMin: 9 },
+  // 浜松（浜松駅から徒歩）
+  { name: "洋麺屋 五右衛門 浜松遠鉄店", area: "浜松", budget: "〜2,000円", walkMin: 2 },
+  { name: "ガストロノミア冨屋", area: "浜松", budget: "〜2,000円", walkMin: 3 },
+  { name: "Italian Bar ri otto", area: "浜松", budget: "〜5,000円", walkMin: 3 },
+  { name: "La FESTa 板屋町店", area: "浜松", budget: "ランチ〜1,000円", walkMin: 4 },
+  { name: "イタリアンバル TSUMIKI 板屋町店", area: "浜松", budget: "〜3,000円", walkMin: 4 },
+  { name: "Orta Ristorante", area: "浜松", budget: "ランチ〜3,000円", walkMin: 5 },
+  { name: "Al solito posto", area: "浜松", budget: "", walkMin: 6 },
+  { name: "Restaurant & Bar FLANGE フランジ", area: "浜松", budget: "〜4,000円", walkMin: 6 },
+  { name: "炭火バル Mabuchi（石窯ピザ）", area: "浜松", budget: "〜4,000円", walkMin: 7 },
+  { name: "ChillWood", area: "浜松", budget: "ディナー高め", walkMin: 7 },
+];
+window.loadInitial = async function () {
+  const ok = await askConfirm(
+    `豊橋・浜松のイタリアン${INITIAL_STORES.length}件を一覧に追加します（未訪問の状態で）。<br>` +
+    `<span style="font-size:12px;color:#8a8a8a">Claude調査の叩き台です。営業状況・徒歩分数・予算は実際にご確認ください。同じ名前の店は追加しません（評価は守られます）。</span>`,
+    { okLabel: "追加する" });
+  if (!ok) return;
+  let added = 0;
+  INITIAL_STORES.forEach(d => {
+    if (db.stores.some(s => s.name === d.name)) return; // 同名はスキップ＝評価済みの店を守る
+    db.stores.push({
+      id: uid(), name: d.name, area: d.area, budget: d.budget || "",
+      walkMin: d.walkMin != null ? d.walkMin : null, mapUrl: mapsSearchUrl(d.name, d.area),
+      wantToGo: false, neverAgain: false, closed: false, menus: [],
+    });
+    added++;
+  });
+  save(); tab = "stores";
+  uiAfter(() => { render(); toast(`${added}件を追加しました`); });
+};
+
+/* バックアップ */
+window.exportData = function () {
+  const blob = new Blob([JSON.stringify(db, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  const d = new Date().toISOString().slice(0, 10);
+  a.href = URL.createObjectURL(blob);
+  a.download = `italian-record-${d}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+};
+window.importData = function (ev) {
+  const file = ev.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = async () => {
+    let data;
+    try {
+      data = JSON.parse(reader.result);
+      if (!data || !Array.isArray(data.stores)) throw new Error();
+    } catch (e) { toast("読み込めませんでした。ファイルを確認してください"); return; }
+    if (!await askConfirm("今の記録を、読み込んだファイルで置きかえます。よろしいですか？", { danger: true, okLabel: "置きかえる" })) return;
+    db = data; save(); tab = "stores";
+    uiAfter(() => { render(); toast("読み込みました"); });
+  };
+  reader.readAsText(file);
+  ev.target.value = "";
+};
+window.loadSample = async function () {
+  if (!await askConfirm("サンプルのお店を3件追加します。")) return;
+  db.stores.push(
+    { id: uid(), name: "トラットリア サンプル", area: "豊橋", budget: "〜2500円", wantToGo: false, neverAgain: false, closed: false,
+      menus: [{ id: uid(), name: "ウニのクリームパスタ", type: "pasta", rating: "best" },
+              { id: uid(), name: "マルゲリータ", type: "pizza", rating: "good" }] },
+    { id: uid(), name: "ピッツェリア みほん", area: "浜松", budget: "ランチ1500円", wantToGo: false, neverAgain: false, closed: false,
+      menus: [{ id: uid(), name: "ボロネーゼ", type: "pasta", rating: "good" }] },
+    { id: uid(), name: "気になるイタリアン", area: "豊橋", budget: "", wantToGo: true, neverAgain: false, closed: false, menus: [] },
+  );
+  save(); tab = "stores";
+  uiAfter(() => { render(); toast("サンプルを追加しました"); });
+};
+window.wipe = async function () {
+  if (!await askConfirm("すべての記録を消します。元に戻せません。<br>書き出してバックアップ済みですか？", { danger: true, okLabel: "全部消す" })) return;
+  db = { stores: [] }; save();
+  uiAfter(() => { render(); toast("すべて消去しました"); });
+};
+
+/* タブ切り替え */
+document.querySelectorAll("nav.tabs button").forEach(b =>
+  b.addEventListener("click", () => { tab = b.dataset.tab; render(); }));
+/* オーバーレイの外側タップで閉じる */
+[storeOverlay, menuOverlay].forEach(o =>
+  o.addEventListener("click", e => { if (e.target === o) o.classList.add("hidden"); }));
+
+render();
+</script>
+</body>
+</html>
