@@ -566,7 +566,7 @@ window.openStore = function (id) {
     <button class="close-x" onclick="closeStore()">✕</button>
     <h2>${s ? "お店を編集" : "お店を追加"}</h2>
     <label class="field">店名
-      <form autocomplete="off" onsubmit="return false" style="margin:0"><input id="f_name" value="${s ? esc(s.name) : ""}" placeholder="例：トラットリア◯◯" autocomplete="off" autocorrect="off" autocapitalize="off"></form>
+      <form autocomplete="off" onsubmit="return false" style="margin:0"><input id="f_name" value="${s ? esc(s.name) : ""}" placeholder="例：トラットリア◯◯" autocomplete="off" autocorrect="off" autocapitalize="off" readonly onfocus="this.removeAttribute('readonly')"></form>
     </label>
     <label class="field">エリア
       <div class="seg" id="f_area">
@@ -661,7 +661,7 @@ function openMenu(storeId, menuId) {
     <button class="close-x" onclick="closeMenu()">✕</button>
     <h2>${m ? "メニューを編集" : "メニューを記録"} <span class="count-pill">${esc(store.name)}</span></h2>
     <label class="field">メニュー名
-      <form autocomplete="off" onsubmit="return false" style="margin:0"><input id="m_name" value="${m ? esc(m.name) : ""}" placeholder="例：ウニのクリームパスタ" autocomplete="off" autocorrect="off" autocapitalize="off"></form>
+      <form autocomplete="off" onsubmit="return false" style="margin:0"><input id="m_name" value="${m ? esc(m.name) : ""}" placeholder="例：ウニのクリームパスタ" autocomplete="off" autocorrect="off" autocapitalize="off" readonly onfocus="this.removeAttribute('readonly')"></form>
     </label>
     <label class="field">種類
       <div class="seg" id="m_type">
