@@ -293,7 +293,7 @@
 /* ---------- データの保存・読み込み ---------- */
 // バージョンマーカー（デバッグ用）：コードを変えたらここの数字を上げる → push後、
 // スマホ画面右上の表示がこの値に変わっていれば「最新版が反映された」と確認できる。
-const APP_VERSION = "v3";
+const APP_VERSION = "v4";
 document.getElementById("ver").textContent = APP_VERSION;
 console.log("APP_VERSION:", APP_VERSION);
 
@@ -317,9 +317,9 @@ const TYPES = {
   pizza: { label: "ピザ",   latin: "PIZZA", icon: "🍕", cls: "tag-pizza", segCls: "t-pizza" },
   other: { label: "その他", latin: "ALTRO", icon: "🍴", cls: "tag-other", segCls: "t-other" },
 };
-const AREAS = ["豊橋", "浜松", "その他"];
+const AREAS = ["豊橋", "浜松", "千石", "根津", "その他"];
 // エリアごとの最寄り駅（徒歩分数の基準）。その他は駅基準なし。
-const STATIONS = { "豊橋": "豊橋駅", "浜松": "浜松駅" };
+const STATIONS = { "豊橋": "豊橋駅", "浜松": "浜松駅", "千石": "千石駅", "根津": "根津駅" };
 // 店名+エリアでGoogleマップ検索を開くリンクを作る（特定URLの誤りを避けるため検索形式）
 function mapsSearchUrl(name, area) {
   const q = encodeURIComponent(`${name} ${area === "その他" ? "" : area} イタリアン`.trim());
@@ -499,6 +499,11 @@ function renderData() {
       <div style="font-weight:700;margin-bottom:8px">初期データ（豊橋・浜松）</div>
       <div class="store-meta" style="margin-bottom:12px">豊橋駅・浜松駅まわりのイタリアンを一覧に入れます（未訪問の状態で。「行きたい」は後からお好みで付けてください）。Claude調査の<b>叩き台</b>なので、実際の営業状況・徒歩分数・予算はご確認ください。同じ名前の店は追加しません（評価は守られます）。</div>
       <button class="btn btn-ghost btn-sm btn-block" onclick="loadInitial()">豊橋・浜松の初期データを入れる</button>
+    </div>
+    <div class="card">
+      <div style="font-weight:700;margin-bottom:8px">初期データ（東京・千石／根津）</div>
+      <div class="store-meta" style="margin-bottom:12px">千石駅・根津駅まわりのイタリアンを一覧に入れます（未訪問の状態で）。Claude調査の<b>叩き台</b>なので、実際の営業状況・徒歩分数・予算はご確認ください。同じ名前の店は追加しません（評価は守られます）。</div>
+      <button class="btn btn-ghost btn-sm btn-block" onclick="loadInitialTokyo()">千石・根津の初期データを入れる</button>
     </div>
     <div class="card">
       <div style="font-weight:700;margin-bottom:8px">サンプルデータ</div>
@@ -758,14 +763,37 @@ const INITIAL_STORES = [
   { name: "炭火バル Mabuchi（石窯ピザ）", area: "浜松", budget: "〜4,000円", walkMin: 7 },
   { name: "ChillWood", area: "浜松", budget: "ディナー高め", walkMin: 7 },
 ];
-window.loadInitial = async function () {
+// 東京・千石／根津（友達用）。豊橋・浜松とは別の投入ボタンにする。
+const INITIAL_STORES_TOKYO = [
+  // 千石（千石駅から徒歩・都営三田線）
+  { name: "Grotta Cucina Italiana", area: "千石", budget: "", walkMin: 2 },
+  { name: "トラットリア・イタリア 文京店", area: "千石", budget: "〜4,000円", walkMin: 5 },
+  { name: "TRATTORIA SICILIA", area: "千石", budget: "", walkMin: 5 },
+  { name: "パセリ屋", area: "千石", budget: "〜2,000円", walkMin: 6 },
+  { name: "DA PEPI", area: "千石", budget: "〜5,000円", walkMin: 8 },
+  { name: "Osteria La Verità", area: "千石", budget: "〜3,000円", walkMin: 8 },
+  { name: "オッティモキッチン 巣鴨店", area: "千石", budget: "〜3,000円", walkMin: 10 },
+  { name: "ラ ベッカータ", area: "千石", budget: "〜4,000円", walkMin: 12 },
+  { name: "イルキャンティ ノンノ・ノンナ", area: "千石", budget: "〜4,000円", walkMin: 13 },
+  { name: "ペッシェ", area: "千石", budget: "〜4,000円", walkMin: 15 },
+  // 根津（根津駅から徒歩・東京メトロ千代田線）
+  { name: "Ciao Centro", area: "根津", budget: "〜4,000円", walkMin: 1 },
+  { name: "SPIGA 根津店", area: "根津", budget: "〜3,000円", walkMin: 1 },
+  { name: "Trattoria pizzeria la Viola", area: "根津", budget: "〜5,000円", walkMin: 1 },
+  { name: "Chama Chama", area: "根津", budget: "〜6,000円", walkMin: 3 },
+  { name: "La Fame", area: "根津", budget: "〜4,000円", walkMin: 3 },
+  { name: "石窯ダイニング DAI", area: "根津", budget: "〜5,000円", walkMin: 10 },
+  { name: "canova", area: "根津", budget: "ディナー高め", walkMin: 10 },
+  { name: "ターボラ", area: "根津", budget: "〜2,000円", walkMin: 11 },
+];
+async function loadInitialStores(list, areaLabel) {
   const ok = await askConfirm(
-    `豊橋・浜松のイタリアン${INITIAL_STORES.length}件を一覧に追加します（未訪問の状態で）。<br>` +
+    `${areaLabel}のイタリアン${list.length}件を一覧に追加します（未訪問の状態で）。<br>` +
     `<span style="font-size:12px;color:#8a8a8a">Claude調査の叩き台です。営業状況・徒歩分数・予算は実際にご確認ください。同じ名前の店は追加しません（評価は守られます）。</span>`,
     { okLabel: "追加する" });
   if (!ok) return;
   let added = 0;
-  INITIAL_STORES.forEach(d => {
+  list.forEach(d => {
     if (db.stores.some(s => s.name === d.name)) return; // 同名はスキップ＝評価済みの店を守る
     db.stores.push({
       id: uid(), name: d.name, area: d.area, budget: d.budget || "",
@@ -776,7 +804,9 @@ window.loadInitial = async function () {
   });
   save(); tab = "stores";
   uiAfter(() => { render(); toast(`${added}件を追加しました`); });
-};
+}
+window.loadInitial = () => loadInitialStores(INITIAL_STORES, "豊橋・浜松");
+window.loadInitialTokyo = () => loadInitialStores(INITIAL_STORES_TOKYO, "千石・根津");
 
 /* バックアップ */
 window.exportData = function () {
