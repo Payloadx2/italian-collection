@@ -293,7 +293,7 @@
 /* ---------- データの保存・読み込み ---------- */
 // バージョンマーカー（デバッグ用）：コードを変えたらここの数字を上げる → push後、
 // スマホ画面右上の表示がこの値に変わっていれば「最新版が反映された」と確認できる。
-const APP_VERSION = "v6";
+const APP_VERSION = "v7";
 document.getElementById("ver").textContent = APP_VERSION;
 console.log("APP_VERSION:", APP_VERSION);
 
@@ -762,6 +762,7 @@ const INITIAL_STORES = [
   { name: "Restaurant & Bar FLANGE フランジ", area: "浜松", budget: "〜4,000円", walkMin: 6 },
   { name: "炭火バル Mabuchi（石窯ピザ）", area: "浜松", budget: "〜4,000円", walkMin: 7 },
   { name: "ChillWood", area: "浜松", budget: "ディナー高め", walkMin: 7 },
+  { name: "CREMA ITALIANO（クレマイタリアーノ）", area: "浜松", budget: "", walkMin: 7 },
 ];
 // 東京・千石／根津（友達用）。豊橋・浜松とは別の投入ボタンにする。
 const INITIAL_STORES_TOKYO = [
